@@ -24,18 +24,12 @@ const app = express()
 app.use(express.json()) //fix for body undefined, 
 //transforms json into a JS object that is attached to body of the request b4 route handler is called, "middleware" in that it handles req, res objects
 
-const requestLogger = (req, res, next) => { //after json parser as if it was before body would have not been defined yet
-    console.log('Method:', req.method)
-    console.log('Path:', req.path)
-    console.log('Body:', req.body)
-    console.log('----')
-    next() //gives control to next middleware. have to be taken into use by our server before route event handlers are ever called
-}
+morgan.token('content', (req, res) => {
+    return req.body.name +" " + req.body.number
+})
 
-app.use(requestLogger)
-//app.use(morgan('tiny'))
-app.use(morgan('tiny', {
-    skip: (req, res) => req !== 'POST'
+app.use(morgan(':method :url :status res[content-length] - :response-time ms :content', {
+    skip: (req, res) => req.method !== 'POST'
 }))
 
 const unknownEndpoint = (request, response) => { //use it after the route handlers for when we didnt have any other response
@@ -94,7 +88,6 @@ app.post('/api/persons', (req, res) => {
         ...person
     }
 
-    console.log(personObj)
     persons = persons.concat(personObj)
     res.json(personObj)
 })
