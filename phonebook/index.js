@@ -17,10 +17,30 @@ let persons = [
 ]
 
 const express = require('express')
+const morgan = require('morgan')
+
 const app = express()
 
 app.use(express.json()) //fix for body undefined, 
-//transforms json into a JS object that is attached to body of the request b4 route handler is called
+//transforms json into a JS object that is attached to body of the request b4 route handler is called, "middleware" in that it handles req, res objects
+
+const requestLogger = (req, res, next) => { //after json parser as if it was before body would have not been defined yet
+    console.log('Method:', req.method)
+    console.log('Path:', req.path)
+    console.log('Body:', req.body)
+    console.log('----')
+    next() //gives control to next middleware. have to be taken into use by our server before route event handlers are ever called
+}
+
+app.use(requestLogger)
+//app.use(morgan('tiny'))
+app.use(morgan('tiny', {
+    skip: (req, res) => req !== 'POST'
+}))
+
+const unknownEndpoint = (request, response) => { //use it after the route handlers for when we didnt have any other response
+    response.status(404).send({ error: 'unknown endpoint' })
+}
 
 app.get('/api/persons', (req, res) => {
     res.json(persons)
@@ -51,9 +71,6 @@ function getId() {
     const maxId = persons.length > 0 ? Math.max(...persons.map(p => p.id)) : 0
     const num = Math.floor(Math.random() * 77)
     return maxId + num
-}
-function isError() {
-
 }
 
 app.post('/api/persons', (req, res) => {
@@ -86,11 +103,13 @@ app.get('/info', (req, res) => {
     res.send(`<div> <p>Phonebook has info for ${persons.length} people</p><p> ${new Date()}</p> </div>`);
 })
 
-
+app.use(unknownEndpoint)
 
 const PORT = 3001
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
 
-console.log(persons)
+
+
+//console.log(persons) this runs before any of the route handlers or server creation>
