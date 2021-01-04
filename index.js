@@ -47,7 +47,6 @@ app.delete('/api/persons/:id', (req, res) => {
 })
 
 
-
 function getId() {
     const maxId = persons.length > 0 ? Math.max(...persons.map(p => p.id)) : 0
     const num = Math.floor(Math.random() * 77)
@@ -56,6 +55,7 @@ function getId() {
 function isError() {
 
 }
+
 app.post('/api/persons', (req, res) => {
     const person = req.body;
 
@@ -92,6 +92,5 @@ const PORT = 3001
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
-
 
 console.log(persons)
