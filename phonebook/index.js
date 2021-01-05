@@ -23,6 +23,7 @@ const app = express()
 
 //transforms json into a JS object that is attached to body of the request b4 route handler is called, "middleware" in that it handles req, res objects
 app.use(express.json()) 
+app.use(express.static('build'))
 
 app.use(morgan(':method :url :status res[content-length] - :response-time ms :content', {
     skip: (req, res) => req.method !== 'POST'
