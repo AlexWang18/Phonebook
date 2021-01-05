@@ -7,6 +7,7 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "deploy": "git push heroku HEAD:main",
+    "logs": "heroku logs -t",
     "test": "echo \\ \"Error: no test specifed\\\" && exit 1"
   },
   "repository": {
@@ -19,8 +20,8 @@
   ],
   "author": "alexw",
   "license": "MIT",
-  
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.17.1",
     "morgan": "^1.10.0"
   },
