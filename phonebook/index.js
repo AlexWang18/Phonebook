@@ -1,3 +1,5 @@
+//getting bug where it is taking forever to loadpage
+
 let persons = [
     {
         id: 1,
@@ -30,7 +32,6 @@ app.use(express.static('build'))
 app.use(morgan(':method :url :status res[content-length] - :response-time ms :content', {
     skip: (req, res) => req.method !== 'POST'
 }))
-
 morgan.token('content', (req, res) => {
     return req.body.name +" " + req.body.number
 })
@@ -38,6 +39,9 @@ morgan.token('content', (req, res) => {
 const unknownEndpoint = (request, response) => { //use it after the route handlers for when we didnt have any other response
     response.status(404).send({ error: 'unknown endpoint' })
 }
+app.get('/', (req,res) => {
+    res.send('<h1>hello world</h1')
+})
 
 app.get('/api/persons', (req, res) => {
     res.json(persons)
@@ -105,7 +109,6 @@ const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
-
 
 
 //console.log(persons) this would run before any of the route handlers or server creation>
