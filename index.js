@@ -25,7 +25,7 @@ const express = require('express')
 const app = express()
 
 
-app.use(cors())
+app.use(cors()) //i hate life
 app.use(express.json())  //transforms json into a JS object that is attached to body of the request b4 route handler is called, "middleware" in that it handles req, res objects
 app.use(express.static('build'))
 
@@ -102,6 +102,5 @@ app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
 
-console.log('why is the page not loading');
-console.log('so annoying')
+
 //console.log(persons) this would run before any of the route handlers or server creation>
