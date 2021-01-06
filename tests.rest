@@ -1,12 +1,14 @@
 
 GET  http://localhost:3001/api/persons
 ###
-DELETE http://localhost:3001/api/persons/100
+DELETE http://localhost:3001/api/persons/5ff61aaf0bdc1940948e1d93
+###
+GET  http://localhost:3001/api/persons/5ff61aaf0bdc1940948e1d93
 ###
 POST http://localhost:3001/api/persons
 Content-Type: application/json
 
 {
-    "name": "Ron Paul",
-    "number": "532-664-5497"
+    "name": "dd",
+    "number": "532d-664-549756"
 }

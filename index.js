@@ -1,23 +1,5 @@
 //getting bug where it is taking forever to loadpage
 
-let persons = [
-    {
-        id: 1,
-        name: "Alex Wang",
-        number: "724-986-8135"
-    },
-    {
-        id: 2,
-        name: "Bob Ross",
-        number: "489-565-3331"
-    },
-    {
-        id: 3,
-        name: "Jim Jones",
-        number: "122-773-4532"
-    }
-]
-
 const morgan = require('morgan')
 const cors = require('cors')
 const express = require('express')
@@ -33,10 +15,11 @@ app.use(morgan(':method :url :status res[content-length] - :response-time ms :co
     skip: (req, res) => req.method !== 'POST'
 }))
 morgan.token('content', (req, res) => {
-    return req.body.name +" " + req.body.number
+    return req.body.name + " " + req.body.number
 })
 
 const Person = require('./model/mongo')
+const { response } = require('express')
 
 app.get('/api/persons', (req, res) => {
     Person.find({}).then(results => {
@@ -45,59 +28,60 @@ app.get('/api/persons', (req, res) => {
 })
 
 app.get('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id)
+    console.log(typeof req.params.id)
+    Person.findById(req.params.id).then(person => {
+        if (person !== null)
+            res.json(person)
+        res.json({
+            error: "id does not exist"
+        }).status(404)
+    }).catch(err => console.log(err.message))
 
-    const note = persons.find(p => p.id === id)
-    if (note)
-        res.json(note)
-    else
-        res.status(404).json({
-            error: 'invalid id',
-            code: 404
-        }).end()
 })
 
 app.delete('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id)
 
-    persons = persons.filter(p => p.id !== id)
+    Person.findByIdAndDelete(req.params.id, (err) => {
+        if (err) console.log(err)
+        console.log('successful deletion')
+    })
     res.status(204).end()
 })
 
-
-function getId() {
-    const maxId = persons.length > 0 ? Math.max(...persons.map(p => p.id)) : 0
-    const num = Math.floor(Math.random() * 77)
-    return maxId + num
-}
-
 app.post('/api/persons', (req, res) => {
-    const person = req.body;
-
-    if (!person.name || !person.number) {
+    const body = req.body;
+    console.log(body)
+    if (!body.name || !body.number) {
         return res.status(400).json({
             error: 'missing name or number',
             code: '400'
         })
     }
+    //pass a filter object to find, returns a query - then is passed to callback parameter
+    Person.find({ $or: [{ name: body.name }, { number: body.number }] }, (err, result) => {
+        //if(err) 
+        if (result.length !== 0) {
+            return res.status(400).json({
+                error: 'duplicate name or number, must be unique',
+            })
+        }
+        else {
+            Person.create({ ...body }).then(savedPerson => {
+                console.log(`added ${savedPerson.name} to phonebook`)
+                return res.json(savedPerson)
+            })
+        }
+    })
 
-    if (persons.find(p => p.name === person.name)) {
-        return res.status(400).json({
-            error: 'duplicate name, must be unique',
-        })
-    }
-
-    const personObj = {
-        id: person.id = getId(), //calculate id serverside, copy persons indiv properties
-        ...person
-    }
-
-    persons = persons.concat(personObj)
-    res.json(personObj)
+})
+let len = 0 
+Person.find({}, (err, result) => {
+    //if(err)
+    len = result.length
 })
 
 app.get('/info', (req, res) => {
-    res.send(`<div> <p>Phonebook has info for ${persons.length} people</p><p> ${new Date()}</p> </div>`);
+    res.send(`<div> <p>Phonebook has info for ${len} people</p><p> ${new Date()}</p> </div>`);
 })
 
 const PORT = process.env.PORT
