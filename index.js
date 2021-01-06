@@ -36,8 +36,12 @@ morgan.token('content', (req, res) => {
     return req.body.name +" " + req.body.number
 })
 
+const Person = require('./model/mongo')
+
 app.get('/api/persons', (req, res) => {
-    res.json(persons)
+    Person.find({}).then(results => {
+        res.json(results)
+    })
 })
 
 app.get('/api/persons/:id', (req, res) => {
@@ -96,7 +100,7 @@ app.get('/info', (req, res) => {
     res.send(`<div> <p>Phonebook has info for ${persons.length} people</p><p> ${new Date()}</p> </div>`);
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
