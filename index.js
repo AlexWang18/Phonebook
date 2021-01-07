@@ -12,7 +12,7 @@ app.use(express.json())  //transforms json into a JS object that is attached to 
 app.use(express.static('build'))
 
 app.use(morgan(':method :url :status res[content-length] - :response-time ms :content', {
-    skip: (req, res) => req.method !== 'POST'
+    skip: (req, res) => req.method !== 'POST' || req.method !== 'PUT' || req.method !== 'DELETE'
 }))
 morgan.token('content', (req, res) => {
     return req.body.name + " " + req.body.number
@@ -43,7 +43,7 @@ app.get('/api/persons/:id', (req, res, next) => {
 
 app.post('/api/persons', (req, res) => {
     const body = req.body;
-    console.log(body)
+
     if (!body.name || !body.number) {
         return res.status(400).json({
             error: 'missing name or number',
@@ -53,6 +53,7 @@ app.post('/api/persons', (req, res) => {
     //pass a filter object to find, returns a query - then is passed to callback parameter
     Person.find({ $or: [{ name: body.name }, { number: body.number }] }, (err, result) => {
         //if(err) 
+
         if (result.length !== 0) {
             return res.status(400).json({
                 error: 'duplicate name or number, must be unique',
@@ -68,16 +69,15 @@ app.post('/api/persons', (req, res) => {
 
 })
 
-let len = 0
-Person.find({}, (err, result) => {
-    //if(err)
-    len = result.length
-})
-
 app.delete('/api/persons/:id', (req, res, next) => {
-
-    Person.findByIdAndDelete(req.params.id)
+    console.log(req.params)
+    console.log(req.body.id)
+    Person.findByIdAndDelete(req.body.id)
         .then(result => {
+            console.log(result)
+            if(result === null){
+                return res.status(404).json({ error: 'nonexistent person' })
+            }
             res.status(204).end()
         })
         .catch(err => next(err))
@@ -86,12 +86,13 @@ app.delete('/api/persons/:id', (req, res, next) => {
 
 app.put('/api/persons/:id', (req, res, next) => {
     const body = req.body
+    //console.log(req)
     const person = {
         name: body.name,
         number: body.number
     }
-
-    Person.findByIdAndUpdate(req.params.id, persons, { new: true })
+    //when using front end trying to update and delete a person, request params id is undefined, so it can not update undefined breaks it
+    Person.findByIdAndUpdate(req.params.id, person, { new: true })
         .then(updatedPerson => {
             res.json(updatedPerson)
         })
@@ -99,6 +100,12 @@ app.put('/api/persons/:id', (req, res, next) => {
 })
 
 app.get('/info', (req, res) => {
+    let len = 0
+    Person.find({}, (err, result) => {
+        //if(err)
+        len = result.length
+    })
+
     res.send(`<div> <p>Phonebook has info for ${len} people</p><p> ${new Date()}</p> </div>`);
 })
 

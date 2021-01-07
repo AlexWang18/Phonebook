@@ -1,7 +1,7 @@
 
 GET  http://localhost:3001/api/persons
 ###
-DELETE http://localhost:3001/api/persons/5ff6213e1991ff3bf40bf148
+DELETE http://localhost:3001/api/persons/5ff6270a8183490004706dab
 ###
 GET  http://localhost:3001/api/persons/5ff61aaf0bdc1940948e1d93
 ###
@@ -9,6 +9,17 @@ POST http://localhost:3001/api/persons
 Content-Type: application/json
 
 {
-    "name": "dd",
+    "name": "het",
     "number": "532d-664-549756"
 }
+
+###
+PUT http://localhost:3001/api/persons/5ff6220a54e3d9281ca7cf14
+Content-Type: application/json
+
+{
+    "name": "updated Personsss",
+    "number": "12345667"
+}
+###
+GET http://localhost:3001/api/persons/5ff722cf0e9a4e16f47330a8
