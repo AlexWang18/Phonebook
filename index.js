@@ -6,9 +6,9 @@ const express = require('express')
 const app = express()
 
 
-app.use(cors()) 
+app.use(cors())
 app.use(express.json())  //transforms json into a JS object that is attached to body of the request b4 route handler is called, middleware in that it handles req, res objects
-app.use(express.static('build'))
+app.use(express.static('build')) //could try using path.join(___dirname, 'public') to try and get the build production of react frontend
 
 app.use(morgan(':method :url :status res[content-length] - :response-time ms :content', {
     skip: (req, res) => req.method !== 'POST' || req.method !== 'PUT' || req.method !== 'DELETE'
@@ -43,15 +43,24 @@ app.get('/api/persons/:id', (req, res, next) => {
 app.post('/api/persons', (req, res, next) => {
     const body = req.body;
 
-    if (!body.name || !body.number) {
+    if (!body.name) {
         return res.status(400).json({
-            error: 'missing name or number',
+            error: 'missing name',
+            code: '400'
+        })
+    }
+    else if (!body.number) {
+        return res.status(400).json({
+            error: 'missing number',
             code: '400'
         })
     }
     //pass a filter object to find, returns a query - then is passed to callback parameter
     Person.find({ $or: [{ name: body.name }, { number: body.number }] }, (err, result) => {
-        if(err) next(err)
+        if (err) {
+            console.log('here', err)
+            return res.send(err)
+        }
         if (result.length !== 0) {
             return res.status(400).json({
                 error: 'duplicate name or number, must be unique',
@@ -62,6 +71,7 @@ app.post('/api/persons', (req, res, next) => {
                 console.log(`added ${savedPerson.name} to phonebook`)
                 return res.json(savedPerson)
             })
+                .catch(error => next(error))
         }
     })
 
@@ -88,7 +98,7 @@ app.put('/api/persons/:id', (req, res, next) => {
         name: body.name,
         number: body.number
     }
-    
+
     Person.findByIdAndUpdate(req.params.id, person, { new: true })
         .then(updatedPerson => {
             res.json(updatedPerson)
@@ -104,10 +114,10 @@ app.get('/info', (req, res) => {
         //if(err)
         len = result.length
     })
-    .then(persons => {
-        res.send(`<div> <p>Phonebook has info for ${len} people</p><p> ${new Date().toLocaleString()}</p> </div>`);
-    })
-    
+        .then(persons => {
+            res.send(`<div> <p>Phonebook has info for ${len} people</p><p> ${new Date().toLocaleString()}</p> </div>`);
+        })
+
 })
 
 const unknownEndpoint = (req, res) => {
@@ -122,6 +132,9 @@ const errorHandler = (err, req, res, next) => {
     if (err.name === 'CastError') {
         return res.status(400).send({ error: 'incorrectly formatted id' })
     }
+    else if (err.name === 'ValidationError') {
+        return res.status(400).send(err.message)
+    }
 
     next(err)
 }
@@ -129,7 +142,8 @@ const errorHandler = (err, req, res, next) => {
 app.use(errorHandler)
 const PORT = process.env.PORT
 
-app.listen(PORT, () => {
+app.listen(PORT, (err) => {
+    if (err) console.log('error in running the server ' + err.message)
     console.log(`Server running on port ${PORT}`)
 })
 
