@@ -7,8 +7,8 @@ const express = require('express')
 const app = express()
 
 
-app.use(cors()) //i hate life
-app.use(express.json())  //transforms json into a JS object that is attached to body of the request b4 route handler is called, "middleware" in that it handles req, res objects
+app.use(cors()) 
+app.use(express.json())  //transforms json into a JS object that is attached to body of the request b4 route handler is called, middleware in that it handles req, res objects
 app.use(express.static('build'))
 
 app.use(morgan(':method :url :status res[content-length] - :response-time ms :content', {
@@ -18,7 +18,7 @@ morgan.token('content', (req, res) => {
     return req.body.name + " " + req.body.number
 })
 
-const Person = require('./model/mongo')
+const Person = require('./model/mongo') //import our model document to fetch from Mongo DB
 
 app.get('/api/persons', (req, res, next) => {
     Person.find({})
@@ -41,7 +41,7 @@ app.get('/api/persons/:id', (req, res, next) => {
 
 })
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
     const body = req.body;
 
     if (!body.name || !body.number) {
@@ -52,8 +52,7 @@ app.post('/api/persons', (req, res) => {
     }
     //pass a filter object to find, returns a query - then is passed to callback parameter
     Person.find({ $or: [{ name: body.name }, { number: body.number }] }, (err, result) => {
-        //if(err) 
-
+        if(err) next(err)
         if (result.length !== 0) {
             return res.status(400).json({
                 error: 'duplicate name or number, must be unique',
@@ -70,12 +69,11 @@ app.post('/api/persons', (req, res) => {
 })
 
 app.delete('/api/persons/:id', (req, res, next) => {
-    console.log(req.params)
-    console.log(req.body.id)
-    Person.findByIdAndDelete(req.body.id)
+
+    Person.findByIdAndDelete(req.params.id)
         .then(result => {
             console.log(result)
-            if(result === null){
+            if (result === null) {
                 return res.status(404).json({ error: 'nonexistent person' })
             }
             res.status(204).end()
@@ -91,7 +89,7 @@ app.put('/api/persons/:id', (req, res, next) => {
         name: body.name,
         number: body.number
     }
-    //when using front end trying to update and delete a person, request params id is undefined, so it can not update undefined breaks it
+    
     Person.findByIdAndUpdate(req.params.id, person, { new: true })
         .then(updatedPerson => {
             res.json(updatedPerson)
@@ -99,14 +97,18 @@ app.put('/api/persons/:id', (req, res, next) => {
         .catch(err => next(err))
 })
 
+
+
 app.get('/info', (req, res) => {
     let len = 0
     Person.find({}, (err, result) => {
         //if(err)
         len = result.length
     })
-
-    res.send(`<div> <p>Phonebook has info for ${len} people</p><p> ${new Date()}</p> </div>`);
+    .then(persons => {
+        res.send(`<div> <p>Phonebook has info for ${len} people</p><p> ${new Date().toLocaleString()}</p> </div>`);
+    })
+    
 })
 
 const unknownEndpoint = (req, res) => {

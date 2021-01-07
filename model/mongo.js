@@ -1,8 +1,9 @@
 require('dotenv').config()
 
+const mongoose = require('mongoose')
+
 const url = process.env.MONGODB_URI
 
-const mongoose = require('mongoose')
 mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true })
 .then(suc => {
     console.log('connected to MongoDB')
@@ -18,7 +19,7 @@ const personSchema = new mongoose.Schema({
 
 personSchema.set('toJSON', {
     transform: (document, returnedObj) => {
-        returnedObj._id = returnedObj._id.toString()
+        returnedObj._id = returnedObj._id.toString() //makes sure it isnt type ObjectId would cause issues in front end
         delete returnedObj.__v
     }
 })
