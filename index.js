@@ -1,4 +1,4 @@
-//getting bug where it is taking forever to loadpage
+//add put / updategit 
 
 const morgan = require('morgan')
 const cors = require('cors')
@@ -19,33 +19,26 @@ morgan.token('content', (req, res) => {
 })
 
 const Person = require('./model/mongo')
-const { response } = require('express')
 
-app.get('/api/persons', (req, res) => {
-    Person.find({}).then(results => {
-        res.json(results)
-    })
+app.get('/api/persons', (req, res, next) => {
+    Person.find({})
+        .then(results => {
+            res.json(results)
+        })
+        .catch(err => next(err))
 })
 
-app.get('/api/persons/:id', (req, res) => {
-    console.log(typeof req.params.id)
+app.get('/api/persons/:id', (req, res, next) => {
+
     Person.findById(req.params.id).then(person => {
         if (person !== null)
             res.json(person)
-        res.json({
-            error: "id does not exist"
-        }).status(404)
-    }).catch(err => console.log(err.message))
+        else
+            res.json({
+                error: "id does not exist"
+            }).status(404)
+    }).catch(err => next(err))
 
-})
-
-app.delete('/api/persons/:id', (req, res) => {
-
-    Person.findByIdAndDelete(req.params.id, (err) => {
-        if (err) console.log(err)
-        console.log('successful deletion')
-    })
-    res.status(204).end()
 })
 
 app.post('/api/persons', (req, res) => {
@@ -74,16 +67,58 @@ app.post('/api/persons', (req, res) => {
     })
 
 })
-let len = 0 
+
+let len = 0
 Person.find({}, (err, result) => {
     //if(err)
     len = result.length
+})
+
+app.delete('/api/persons/:id', (req, res, next) => {
+
+    Person.findByIdAndDelete(req.params.id)
+        .then(result => {
+            res.status(204).end()
+        })
+        .catch(err => next(err))
+
+})
+
+app.put('/api/persons/:id', (req, res, next) => {
+    const body = req.body
+    const person = {
+        name: body.name,
+        number: body.number
+    }
+
+    Person.findByIdAndUpdate(req.params.id, persons, { new: true })
+        .then(updatedPerson => {
+            res.json(updatedPerson)
+        })
+        .catch(err => next(err))
 })
 
 app.get('/info', (req, res) => {
     res.send(`<div> <p>Phonebook has info for ${len} people</p><p> ${new Date()}</p> </div>`);
 })
 
+const unknownEndpoint = (req, res) => {
+    res.status(404).send({ error: 'unknown endpoint' })
+}
+
+app.use(unknownEndpoint)
+
+const errorHandler = (err, req, res, next) => {
+    console.log(err.message)
+
+    if (err.name === 'CastError') {
+        return res.status(400).send({ error: 'incorrectly formatted id' })
+    }
+
+    next(err)
+}
+
+app.use(errorHandler)
 const PORT = process.env.PORT
 
 app.listen(PORT, () => {
