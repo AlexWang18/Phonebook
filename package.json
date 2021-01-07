@@ -8,7 +8,8 @@
     "dev": "nodemon --watch index.js",
     "deploy": "git push heroku HEAD:main",
     "logs": "heroku logs -t",
-    "test": "echo \\ \"Error: no test specifed\\\" && exit 1"
+    "test": "echo \\ \"Error: no test specifed\\\" && exit 1",
+    "lint": "eslint ."
   },
   "repository": {
     "type": "git",
@@ -29,6 +30,12 @@
     "morgan": "^1.10.0"
   },
   "devDependencies": {
+    "eslint": "^7.17.0",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-react": "^7.22.0",
+    "eslint-plugin-react-hooks": "^4.2.0",
     "nodemon": "^2.0.7"
   }
 }
