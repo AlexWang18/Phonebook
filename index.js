@@ -2,9 +2,9 @@
 const morgan = require('morgan')
 const cors = require('cors')
 const express = require('express')
+//const {pathToRegexp} = require('path-to-regexp') dont think i need this express already uses it for matching 
 
 const app = express()
-
 
 app.use(cors())
 app.use(express.json())  //transforms json into a JS object that is attached to body of the request b4 route handler is called, middleware in that it handles req, res objects
@@ -14,12 +14,12 @@ app.use(morgan(':method :url :status res[content-length] - :response-time ms :co
     skip: (req, res) => req.method !== 'POST' || req.method !== 'PUT' || req.method !== 'DELETE'
 }))
 morgan.token('content', (req, res) => {
-    return req.body.name + " " + req.body.number
+    return req.body.name + ' ' + req.body.number
 })
 
 const Person = require('./model/mongo') //import our model document to fetch from Mongo DB
 
-app.get('/api/persons', (req, res, next) => {
+app.get('(/api)?/persons', (req, res, next) => {
     Person.find({})
         .then(results => {
             res.json(results)
@@ -27,20 +27,20 @@ app.get('/api/persons', (req, res, next) => {
         .catch(err => next(err))
 })
 
-app.get('/api/persons/:id', (req, res, next) => {
+app.get('(/api)?/persons/:id', (req, res, next) => {
 
     Person.findById(req.params.id).then(person => {
         if (person !== null)
             res.json(person)
         else
             res.json({
-                error: "id does not exist"
+                error: 'id does not exist'
             }).status(404)
     }).catch(err => next(err))
 
 })
 
-app.post('/api/persons', (req, res, next) => {
+app.post('(/api)?/persons', (req, res, next) => {
     const body = req.body;
 
     if (!body.name) {
@@ -77,7 +77,7 @@ app.post('/api/persons', (req, res, next) => {
 
 })
 
-app.delete('/api/persons/:id', (req, res, next) => {
+app.delete('(/api)?/persons/:id', (req, res, next) => {
 
     Person.findByIdAndDelete(req.params.id)
         .then(result => {
@@ -91,7 +91,7 @@ app.delete('/api/persons/:id', (req, res, next) => {
 
 })
 
-app.put('/api/persons/:id', (req, res, next) => {
+app.put('(/api)?/persons/:id', (req, res, next) => {
     const body = req.body
     //console.log(req)
     const person = {
@@ -108,13 +108,14 @@ app.put('/api/persons/:id', (req, res, next) => {
 
 
 
-app.get('/info', (req, res) => {
+app.get('/i(nfo)?(moration)?', (req, res) => {
     let len = 0
     Person.find({}, (err, result) => {
         //if(err)
         len = result.length
     })
         .then(persons => {
+            console.log('length',persons.length)
             res.send(`<div> <p>Phonebook has info for ${len} people</p><p> ${new Date().toLocaleString()}</p> </div>`);
         })
 
