@@ -1,16 +1,15 @@
-require('dotenv').config()
+const logger = require('../utils/logger')
+const config = require('../utils/config')
 
 const mongoose = require('mongoose')
 const uniqueValidator = require('mongoose-unique-validator')
 
-const url = process.env.MONGODB_URI
-
-mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true })
+mongoose.connect(config.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true })
     .then(suc => {
-        console.log('connected to MongoDB')
+        logger.info('connected to MongoDB')
     })
     .catch(error => {
-        console.log('error connecting ', error.message)
+        logger.error('error connecting ', error.message)
     })
 
 const personSchema = new mongoose.Schema({
@@ -36,6 +35,6 @@ personSchema.set('toJSON', {
     }
 })
 
-module.exports = mongoose.model('Person', personSchema) //return constructer function in that any instance of a model will have properties of the model and methods to save/find
+module.exports = mongoose.model('Person', personSchema) //returns constructer function 
 
 
